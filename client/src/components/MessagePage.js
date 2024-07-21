@@ -188,7 +188,7 @@ const MessagePage = () => {
                     {
                       allMessage.map((msg,index)=>{
                         return(
-                          <div className={` p-1 py-1 rounded w-fit max-w-[280px] md:max-w-sm lg:max-w-md ${user._id === msg?.msgByUserId ? "ml-auto bg-teal-100" : "bg-white"}`}>
+                          <div className={` p-1 py-1 rounded w-fit max-w-[280px] md:max-w-sm lg:max-w-md ${user._id === msg?.msgByUserId?._id ? "ml-auto bg-teal-100" : "bg-white"}`}>
                             <div className='w-full relative'>
                               {
                                 msg?.imageUrl && (
@@ -208,7 +208,10 @@ const MessagePage = () => {
                                 )
                               }
                             </div>
-                            <p className='px-2'>{msg.text}</p>
+                            {/* <p className='px-2'>{msg.msgByUserId.name} :-{msg.text}</p> */}
+                            <p className='px-2'>
+                        <span style={{ fontWeight: 'bold', color: 'rgb(18, 138, 40)' }}>{msg.msgByUserId.name}:</span> {msg.text}
+                    </p>
                             <p className='text-xs ml-auto w-fit'>{moment(msg.createdAt).format('hh:mm')}</p>
                           </div>
                         )

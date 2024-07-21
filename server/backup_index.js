@@ -71,65 +71,51 @@ io.on('connection',async(socket)=>{
 
     // ****************************************************************************
 
+    
+    socket.on('message-page', async (userId) => {
+        console.log('you are trying to chat with ', userId);
 
-    // message-page event
-socket.on('message-page', async (userId) => {
-    console.log('you are trying to chat with', userId);
+        const userDetails = await UserModel.findById(userId).select("-password");
 
-    const userDetails = await UserModel.findById(userId).select("-password");
+        const payload = {
+            _id: userDetails?._id,
+            name: userDetails?.name,
+            email: userDetails?.email,
+            profile_pic: userDetails?.profile_pic,
+            online: onlineUser.has(userId)
+        };
 
-    const payload = {
-        _id: userDetails?._id,
-        name: userDetails?.name,
-        email: userDetails?.email,
-        profile_pic: userDetails?.profile_pic,
-        online: onlineUser.has(userId) // Check if the user is online
-    };
+        socket.emit('message-user', payload);
 
-    socket.emit('message-user', payload);
+        let messages = [];
 
-    let messages = [];
+        if (userId === JEE_BROADCAST_CHANNEL_ID) {
+            // Fetch all conversations where the receiver is the JEE Broadcast Channel
+            const conversations = await ConversationModel.find({
+                receiver: JEE_BROADCAST_CHANNEL_ID
+            }).populate('messages').sort({ updatedAt: 1 });
 
-    if (userId === JEE_BROADCAST_CHANNEL_ID) {
-        // Fetch all conversations where the receiver is the JEE Broadcast Channel
-        const conversations = await ConversationModel.find({
-            receiver: JEE_BROADCAST_CHANNEL_ID
-        }).populate({
-            path: 'messages',
-            populate: {
-                path: 'msgByUserId',
-                select: 'name profile_pic'
-            }
-        }).sort({ updatedAt: 1 });
+            // Gather all messages from these conversations
+            conversations.forEach(conversation => {
+                messages = messages.concat(conversation.messages);
+            });
 
-        // Gather all messages from these conversations
-        conversations.forEach(conversation => {
-            messages = messages.concat(conversation.messages);
-        });
+            // Sort messages by creation time (oldest to latest)
+            messages.sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
+        } else {
+            // Fetch previous messages between the two users
+            const getConversationMessage = await ConversationModel.findOne({
+                "$or": [
+                    { sender: user?._id, receiver: userId },
+                    { sender: userId, receiver: user?._id }
+                ]
+            }).populate('messages').sort({ updatedAt: -1 });
 
-        // Sort messages by creation time (oldest to latest)
-        messages.sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
-    } else {
-        // Fetch previous messages between the two users
-        const getConversationMessage = await ConversationModel.findOne({
-            "$or": [
-                { sender: user?._id, receiver: userId },
-                { sender: userId, receiver: user?._id }
-            ]
-        }).populate({
-            path: 'messages',
-            populate: {
-                path: 'msgByUserId',
-                select: 'name profile_pic'
-            }
-        }).sort({ updatedAt: -1 });
+            messages = getConversationMessage?.messages || [];
+        }
 
-        messages = getConversationMessage?.messages || [];
-    }
-
-    socket.emit('message', messages);
-});
-
+        socket.emit('message', messages);
+    });
 
 // ****************************************************************************************
     //new message
@@ -265,6 +251,7 @@ socket.on('message-page', async (userId) => {
 
 // new message
 socket.on('new message', async (data) => {
+
     // Check if the conversation is available between the users
     let conversation = await ConversationModel.findOne({
         "$or": [
@@ -346,6 +333,7 @@ socket.on('new message', async (data) => {
     io.to(data?.sender).emit('conversation', conversationSender);
     io.to(data?.receiver).emit('conversation', conversationReceiver);
 });
+
 
 
 
