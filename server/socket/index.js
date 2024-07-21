@@ -24,6 +24,10 @@ const io = new Server(server,{
 //online user
 const onlineUser = new Set()
 
+
+// JEE Broadcast Channel ID
+const JEE_BROADCAST_CHANNEL_ID = '669d47f2f4913b792cc11ef0';
+
 io.on('connection',async(socket)=>{
     console.log("connect User ", socket.id)
 
@@ -38,30 +42,79 @@ io.on('connection',async(socket)=>{
 
     io.emit('onlineUser',Array.from(onlineUser))
 
-    socket.on('message-page',async(userId)=>{
-        console.log('userId',userId)
-        const userDetails = await UserModel.findById(userId).select("-password")
+    // ****************************************************************************
+
+    // socket.on('message-page',async(userId)=>{
+    //     console.log('userId',userId)
+    //     const userDetails = await UserModel.findById(userId).select("-password")
         
+    //     const payload = {
+    //         _id : userDetails?._id,
+    //         name : userDetails?.name,
+    //         email : userDetails?.email,
+    //         profile_pic : userDetails?.profile_pic,
+    //         online : onlineUser.has(userId)
+    //     }
+    //     socket.emit('message-user',payload)
+
+
+    //      //get previous message
+    //      const getConversationMessage = await ConversationModel.findOne({
+    //         "$or" : [
+    //             { sender : user?._id, receiver : userId },
+    //             { sender : userId, receiver :  user?._id}
+    //         ]
+    //     }).populate('messages').sort({ updatedAt : -1 })
+
+    //     socket.emit('message',getConversationMessage?.messages || [])
+    // })
+
+    // ****************************************************************************
+
+    socket.on('message-page', async (userId) => {
+        console.log('you are trying to chat with ', userId);
+
+        const userDetails = await UserModel.findById(userId).select("-password");
+
         const payload = {
-            _id : userDetails?._id,
-            name : userDetails?.name,
-            email : userDetails?.email,
-            profile_pic : userDetails?.profile_pic,
-            online : onlineUser.has(userId)
+            _id: userDetails?._id,
+            name: userDetails?.name,
+            email: userDetails?.email,
+            profile_pic: userDetails?.profile_pic,
+            online: onlineUser.has(userId)
+        };
+
+        socket.emit('message-user', payload);
+
+        let messages = [];
+
+        if (userId === JEE_BROADCAST_CHANNEL_ID) {
+            // Fetch all conversations where the receiver is the JEE Broadcast Channel
+            const conversations = await ConversationModel.find({
+                receiver: JEE_BROADCAST_CHANNEL_ID
+            }).populate('messages').sort({ updatedAt: 1 });
+
+            // Gather all messages from these conversations
+            conversations.forEach(conversation => {
+                messages = messages.concat(conversation.messages);
+            });
+
+            // Sort messages by creation time (oldest to latest)
+            messages.sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
+        } else {
+            // Fetch previous messages between the two users
+            const getConversationMessage = await ConversationModel.findOne({
+                "$or": [
+                    { sender: user?._id, receiver: userId },
+                    { sender: userId, receiver: user?._id }
+                ]
+            }).populate('messages').sort({ updatedAt: -1 });
+
+            messages = getConversationMessage?.messages || [];
         }
-        socket.emit('message-user',payload)
 
-
-         //get previous message
-         const getConversationMessage = await ConversationModel.findOne({
-            "$or" : [
-                { sender : user?._id, receiver : userId },
-                { sender : userId, receiver :  user?._id}
-            ]
-        }).populate('messages').sort({ updatedAt : -1 })
-
-        socket.emit('message',getConversationMessage?.messages || [])
-    })
+        socket.emit('message', messages);
+    });
 
 
     //new message
