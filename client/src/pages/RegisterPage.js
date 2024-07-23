@@ -625,8 +625,8 @@ const RegisterPage = () => {
                 <option value="">Select your course</option>
                 <option value="JEE">JEE</option>
                 <option value="NEET">NEET</option>
-                <option value="Class 11">Class 11</option>
-                <option value="Class 12">Class 12</option>
+                <option value="Class_11">Class 11</option>
+                <option value="Class_12">Class 12</option>
               </select>
             </div>
           )}

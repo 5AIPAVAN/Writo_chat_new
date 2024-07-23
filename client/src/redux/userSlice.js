@@ -8,6 +8,7 @@ const initialState = {
   token : "",
   student:"",
   mentor :"",
+  student_course:"",
   onlineUser : [],
   socketConnection : null
 }
@@ -23,6 +24,7 @@ export const userSlice = createSlice({
         state.profile_pic = action.payload.profile_pic 
         state.student = action.payload.student  
         state.mentor = action.payload.mentor 
+        state.student_course = action.payload.student_course
     },
     setToken : (state,action)=>{
         state.token = action.payload
@@ -36,6 +38,7 @@ export const userSlice = createSlice({
         state.socketConnection = null
         state.student=""
         state.mentor=""
+        state.student_course=""
     },
     setOnlineUser : (state,action)=>{
       state.onlineUser = action.payload

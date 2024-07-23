@@ -12,8 +12,7 @@ const Home = () => {
   const dispatch = useDispatch()
   const navigate = useNavigate()
   const location = useLocation()
-
-  console.log('user',user)
+  console.log("user data from redux in home.js",user)
   const fetchUserDetails = async()=>{
     try {
         const URL = `${process.env.REACT_APP_BACKEND_URL}/api/user-details`
@@ -21,6 +20,8 @@ const Home = () => {
           url : URL,
           withCredentials : true
         })
+
+        console.log("response in home page",response);
 
         dispatch(setUser(response.data.data))
 
