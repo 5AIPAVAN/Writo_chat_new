@@ -314,36 +314,7 @@ io.on('connection', async (socket) => {
     onlineUser.add(user?._id?.toString());
     console.log('User joined room:', user?._id.toString());
 
-    // // Join the appropriate broadcast channel room based on student_course
-    // switch (user?.student_course) {
-    //     case 'JEE':
-    //         socket.join(BROADCAST_CHANNEL_IDS.JEE);
-    //         console.log('User joined JEE channel');
-    //         break;
-    //     case 'NEET':
-    //         socket.join(BROADCAST_CHANNEL_IDS.NEET);
-    //         console.log('User joined NEET channel');
-    //         break;
-    //     case 'Class_11':
-    //         socket.join(BROADCAST_CHANNEL_IDS.CLASS_11);
-    //         console.log('User joined CLASS-11 channel');
-    //         break;
-    //     case 'Class_12':
-    //         socket.join(BROADCAST_CHANNEL_IDS.CLASS_12);
-    //         console.log('User joined CLASS-12 channel');
-    //         break;
-    // }
-
     // Join the appropriate broadcast channel room based on student_course
-if (user?.mentor) {
-    // If the user is a mentor, join all broadcast channels
-    socket.join(BROADCAST_CHANNEL_IDS.JEE);
-    socket.join(BROADCAST_CHANNEL_IDS.NEET);
-    socket.join(BROADCAST_CHANNEL_IDS.CLASS_11);
-    socket.join(BROADCAST_CHANNEL_IDS.CLASS_12);
-    console.log('Mentor joined all broadcast channels');
-} else {
-    // If the user is a student, join the channel based on their student_course
     switch (user?.student_course) {
         case 'JEE':
             socket.join(BROADCAST_CHANNEL_IDS.JEE);
@@ -353,21 +324,15 @@ if (user?.mentor) {
             socket.join(BROADCAST_CHANNEL_IDS.NEET);
             console.log('User joined NEET channel');
             break;
-        case 'CLASS_11':
+        case 'Class_11':
             socket.join(BROADCAST_CHANNEL_IDS.CLASS_11);
             console.log('User joined CLASS-11 channel');
             break;
-        case 'CLASS_12':
+        case 'Class_12':
             socket.join(BROADCAST_CHANNEL_IDS.CLASS_12);
             console.log('User joined CLASS-12 channel');
             break;
-        default:
-            console.log('User has no valid student_course');
     }
-}
-
-
-
 
     // Emit online users
     io.emit('onlineUser', Array.from(onlineUser));

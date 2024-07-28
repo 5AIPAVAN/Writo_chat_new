@@ -7,6 +7,8 @@ import Home from "../pages/Home";
 import MessagePage from "../components/MessagePage";
 import AuthLayouts from "../layout";
 import Forgotpassword from "../pages/Forgotpassword";
+import Community_Sidebar from "../components/Community_Sidebar";
+import Community_Home from "../pages/Community_Home";
 
 const router = createBrowserRouter([
 {
@@ -32,6 +34,16 @@ const router = createBrowserRouter([
         {
             path : "",
             element : <Home/>,
+            children : [
+                {
+                    path : ':userId',
+                    element : <MessagePage/>
+                }
+            ]
+        },
+        {
+            path : "/community-chat",
+            element :  <Community_Home/>,
             children : [
                 {
                     path : ':userId',
